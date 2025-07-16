@@ -6,76 +6,77 @@
   <style>body { margin: 0; overflow: hidden; }</style>
 </head>
 <body>
-<script type="module">
-import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.157.0/build/three.module.js';
-import { VRButton } from 'https://cdn.jsdelivr.net/npm/three@0.157.0/examples/jsm/webxr/VRButton.js';
-import { GLTFLoader } from 'https://cdn.jsdelivr.net/npm/three@0.157.0/examples/jsm/loaders/GLTFLoader.js';
+<script src="https://cdn.jsdelivr.net/npm/three@0.157.0/build/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.157.0/examples/js/loaders/GLTFLoader.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.157.0/examples/jsm/webxr/VRButton.js"></script>
 
-let camera, scene, renderer;
-let controller1, controller2;
+<script>
+  let camera, scene, renderer;
+  let controller1, controller2;
 
-init();
-animate();
+  init();
+  animate();
 
-function init() {
-  scene = new THREE.Scene();
-  scene.background = new THREE.Color(0x202020);
+  function init() {
+    scene = new THREE.Scene();
+    scene.background = new THREE.Color(0x202020);
 
-  camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.01, 100);
-  camera.position.set(0, 1.6, 3);
+    camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.01, 100);
+    camera.position.set(0, 1.6, 3);
 
-  renderer = new THREE.WebGLRenderer({ antialias: true });
-  renderer.setSize(window.innerWidth, window.innerHeight);
-  renderer.xr.enabled = true;
-  document.body.appendChild(renderer.domElement);
-  document.body.appendChild(VRButton.createButton(renderer));
+    renderer = new THREE.WebGLRenderer({ antialias: true });
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.xr.enabled = true;
+    document.body.appendChild(renderer.domElement);
 
-  const light = new THREE.HemisphereLight(0xffffff, 0xbbbbff, 1);
-  scene.add(light);
+    // Manually add VRButton
+    VRButton.createButton(renderer);
+    document.body.appendChild(VRButton.createButton(renderer));
 
-  const floor = new THREE.Mesh(
-    new THREE.PlaneGeometry(10, 10),
-    new THREE.MeshStandardMaterial({ color: 0x444444 })
-  );
-  floor.rotation.x = -Math.PI / 2;
-  scene.add(floor);
+    const light = new THREE.HemisphereLight(0xffffff, 0xbbbbff, 1);
+    scene.add(light);
 
-  const loader = new GLTFLoader();
+    const floor = new THREE.Mesh(
+      new THREE.PlaneGeometry(10, 10),
+      new THREE.MeshStandardMaterial({ color: 0x444444 })
+    );
+    floor.rotation.x = -Math.PI / 2;
+    scene.add(floor);
 
-  // Left controller with hand model
-  controller1 = renderer.xr.getController(0);
-  loader.load('https://cdn.jsdelivr.net/gh/KhronosGroup/glTF-Sample-Models@master/2.0/Hand/glTF/Hand.gltf', function (gltf) {
-    const hand = gltf.scene;
-    hand.scale.set(0.1, 0.1, 0.1);
-    hand.rotation.x = Math.PI / 2;
-    controller1.add(hand);
-  });
-  scene.add(controller1);
+    const loader = new THREE.GLTFLoader();
 
-  // Right controller with hand model
-  controller2 = renderer.xr.getController(1);
-  loader.load('https://cdn.jsdelivr.net/gh/KhronosGroup/glTF-Sample-Models@master/2.0/Hand/glTF/Hand.gltf', function (gltf) {
-    const hand = gltf.scene;
-    hand.scale.set(0.1, 0.1, 0.1);
-    hand.rotation.x = Math.PI / 2;
-    controller2.add(hand);
-  });
-  scene.add(controller2);
+    // Left hand on controller 0
+    controller1 = renderer.xr.getController(0);
+    loader.load('https://cdn.jsdelivr.net/gh/KhronosGroup/glTF-Sample-Models@master/2.0/Hand/glTF/Hand.gltf', function (gltf) {
+      const hand = gltf.scene;
+      hand.scale.set(0.1, 0.1, 0.1);
+      hand.rotation.x = Math.PI / 2;
+      controller1.add(hand);
+    });
+    scene.add(controller1);
 
-  window.addEventListener('resize', onWindowResize);
-}
+    // Right hand on controller 1
+    controller2 = renderer.xr.getController(1);
+    loader.load('https://cdn.jsdelivr.net/gh/KhronosGroup/glTF-Sample-Models@master/2.0/Hand/glTF/Hand.gltf', function (gltf) {
+      const hand = gltf.scene.clone();
+      hand.scale.set(0.1, 0.1, 0.1);
+      hand.rotation.x = Math.PI / 2;
+      controller2.add(hand);
+    });
+    scene.add(controller2);
 
-function onWindowResize() {
-  camera.aspect = window.innerWidth / window.innerHeight;
-  camera.updateProjectionMatrix();
-  renderer.setSize(window.innerWidth, window.innerHeight);
-}
+    window.addEventListener('resize', () => {
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+    });
+  }
 
-function animate() {
-  renderer.setAnimationLoop(() => {
-    renderer.render(scene, camera);
-  });
-}
+  function animate() {
+    renderer.setAnimationLoop(() => {
+      renderer.render(scene, camera);
+    });
+  }
 </script>
 </body>
 </html>
